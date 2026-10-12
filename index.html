@@ -13,7 +13,7 @@
   --paper:#FBFCFE; --grid:rgba(47,90,180,.09); --ink:#1A2133; --muted:#5B6478;
   --blue:#1D3FAF; --margin:#D6453D; --card:#FFFFFF; --line:#D9DFEA; --field:#F3F6FB;
   --ok:#1F7A4D; --err:#B3261E;
-  --c-all:#1A2133; --c-web:#2F6FDB; --c-app:#7A3FD1; --c-webapp:#0E8A7A; --c-ai:#D9822B; --c-db:#C2366B;
+  --c-all:#1A2133; --c-web:#2F6FDB; --c-app:#7A3FD1; --c-webapp:#0E8A7A; --c-ai:#D9822B; --c-db:#C2366B; --c-biz:#9A7B12;
   box-sizing:border-box;
   padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
 }
@@ -192,6 +192,7 @@ const SUBJECTS = [
   {id:'webapp', name:'Programowanie aplikacji internetowych', color:'var(--c-webapp)', ext:['js','ts','jsx','tsx','php','vue','json','mjs']},
   {id:'ai',     name:'Dodatkowe umiejętności – Sztuczna Inteligencja', color:'var(--c-ai)', ext:['ipynb','pkl','h5','onnx']},
   {id:'db',     name:'Bazy danych', color:'var(--c-db)', ext:['sql','db','sqlite','accdb','mdb','csv']},
+  {id:'biz',    name:'Biznes i zarządzanie', color:'var(--c-biz)', ext:['xlsx','xls','ods','pptx','ppt','odp']},
 ];
 const ALL = {id:'all', name:'Wszystkie pliki', color:'var(--c-all)'};
 const subj = id => SUBJECTS.find(s=>s.id===id) || SUBJECTS[0];
