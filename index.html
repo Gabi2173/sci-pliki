@@ -247,6 +247,7 @@ function safeName(n){
 const API = SUPABASE_URL + '/functions/v1/sci-api';
 let me = null;               // {session, name, login}
 let myIds = new Set();       // id moich plików (mogę je usuwać)
+let isAdmin = false;         // administrator może usuwać wszystkie pliki (sprawdzane też na serwerze)
 function loadMe(){ try{ return JSON.parse(localStorage.getItem('sci-me')||'null'); }catch{ return null; } }
 function saveMe(v){ try{ v? localStorage.setItem('sci-me',JSON.stringify(v)) : localStorage.removeItem('sci-me'); }catch{} }
 async function api(action, data={}){
@@ -260,13 +261,13 @@ async function api(action, data={}){
 function setMe(v){
   me=v; saveMe(v);
   $('loginForm').hidden=!!v; $('who').hidden=!v; $('upBody').hidden=!v;
-  if(v){ $('whoName').textContent=v.name; $('whoLogin').textContent=v.login && v.login!==v.name ? '(login: '+v.login+')' : ''; }
-  else myIds=new Set();
+  if(v){ $('whoName').textContent=v.name; $('whoLogin').textContent=(v.login && v.login!==v.name ? '(login: '+v.login+')' : '')+(isAdmin?' · administrator':''); }
+  else { myIds=new Set(); isAdmin=false; }
   renderList();
 }
 async function refreshMe(){
   if(!me) return;
-  try{ const j=await api('me'); me.name=j.name; myIds=new Set(j.ids||[]); setMe(me); }catch{}
+  try{ const j=await api('me'); me.name=j.name; myIds=new Set(j.ids||[]); isAdmin=!!j.admin; setMe(me); }catch{}
 }
 
 let sb=null, files=[], current='all', query='';
@@ -315,7 +316,7 @@ function card(f){
   acts.append(el('a',{class:'btn small',href:publicUrl(f.file_path,f.file_name),style:'text-decoration:none'},'Pobierz'));
   if(TEXT_EXT.includes(e)) acts.append(el('button',{class:'btn ghost small',onclick:ev=>togglePreview(f,pre,ev.currentTarget)},'Podgląd kodu'));
   if(e==='pdf' || e==='mp4' || e==='webm') acts.append(el('a',{class:'btn ghost small',href:publicUrl(f.file_path),target:'_blank',rel:'noopener',style:'text-decoration:none'},'Otwórz'));
-  if(myIds.has(f.id)) acts.append(el('button',{class:'btn danger small',onclick:()=>remove(f)},'Usuń'));
+  if(isAdmin || myIds.has(f.id)) acts.append(el('button',{class:'btn danger small',onclick:()=>remove(f)},'Usuń'));
 
   return el('article',{class:'item',style:'--ic:'+s.color},
     pic,
