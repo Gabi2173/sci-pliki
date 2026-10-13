@@ -122,15 +122,216 @@ pre.code{margin:0;max-height:300px;overflow:auto;background:var(--field);border-
   .sheet{padding:14px}
 }
 @media (prefers-reduced-motion:no-preference){ .item{animation:in .25s ease both} @keyframes in{from{opacity:0;transform:translateY(4px)}} }
+
+/* ===== widoki: Start / Kalendarz / Librus / Pliki ===== */
+:root{--s-moodle:#E07A1F; --s-librus:#C2366B; --s-own:#1F7A4D}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){--s-moodle:#F5A25D; --s-librus:#F07AA6; --s-own:#5FD39B}}
+:root[data-theme="dark"]{--s-moodle:#F5A25D; --s-librus:#F07AA6; --s-own:#5FD39B}
+.src-moodle{--sc:var(--s-moodle)} .src-librus{--sc:var(--s-librus)} .src-own{--sc:var(--s-own)}
+.userbox{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.95rem;color:var(--muted)}
+.userbox strong{color:var(--ink)}
+.views{display:flex;gap:6px;flex-wrap:wrap;margin:-8px 0 20px}
+.vbtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 16px;
+  font:700 1rem "Bricolage Grotesque",system-ui,sans-serif;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.vbtn[aria-current="page"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.badge{background:var(--margin);color:#fff;border-radius:999px;font:700 .72rem "JetBrains Mono",monospace;padding:1px 7px;line-height:1.5}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;min-width:0}
+.panel>h2,.panel-h h2{font:700 1.3rem "Bricolage Grotesque",system-ui,sans-serif;margin:0 0 12px}
+.panel-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.panel-h h2{margin:0}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;align-items:start}
+.stack{display:grid;gap:16px}
+.muted{color:var(--muted)} .small{font-size:.88rem}
+.note{background:var(--field);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:.93rem}
+.note.warn{border-color:var(--s-moodle)}
+.linkbtn{background:none;border:none;color:var(--blue);font:inherit;cursor:pointer;padding:0;text-decoration:underline}
+#auth{margin-bottom:20px}
+#auth .login{padding:0}
+
+/* lista wydarzeń */
+.evday{font:700 .82rem "JetBrains Mono",monospace;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:14px 0 2px}
+.evday:first-child{margin-top:0}
+.ev{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.ev:last-child{border-bottom:none}
+.ev .dot{width:10px;height:10px;border-radius:50%;background:var(--sc);margin-top:8px;flex:none}
+.ev .body{flex:1;min-width:0}
+.ev .t{font-weight:700;word-break:break-word}
+.ev .m{font-size:.84rem;color:var(--muted)}
+.ev .d{font-size:.88rem;white-space:pre-wrap;word-break:break-word;margin-top:4px}
+.ev.done .t{text-decoration:line-through;opacity:.55}
+.ev input[type=checkbox]{width:18px;height:18px;margin-top:4px;accent-color:var(--s-own);flex:none}
+.ev .x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;padding:0 4px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--sc);margin-right:6px;vertical-align:-1px}
+
+/* miesiąc */
+.cal-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(280px,1fr);gap:16px;align-items:start}
+@media (max-width:900px){ .cal-layout{grid-template-columns:1fr} }
+.cal-nav{display:flex;align-items:center;gap:6px}
+.cal-nav h2{min-width:170px;text-align:center;text-transform:capitalize}
+.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin-top:10px}
+.dow{font:600 .75rem "JetBrains Mono",monospace;color:var(--muted);text-align:center;padding:2px 0}
+.day{min-height:84px;border:1px solid var(--line);border-radius:8px;padding:4px 5px;background:var(--field);cursor:pointer;text-align:left;
+  font:inherit;color:inherit;display:flex;flex-direction:column;gap:2px;overflow:hidden;min-width:0}
+.day.out{opacity:.45}
+.day.today .num{background:var(--blue);color:var(--paper);border-radius:999px;padding:0 6px}
+.day[aria-pressed="true"]{background:var(--card);border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.day .num{font:600 .8rem "JetBrains Mono",monospace;align-self:flex-start}
+.chip{font-size:.72rem;line-height:1.3;border-left:3px solid var(--sc);padding-left:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip.done{text-decoration:line-through;opacity:.6}
+.more{font-size:.7rem;color:var(--muted)}
+.dots{display:none;gap:3px;flex-wrap:wrap} .dots i{width:7px;height:7px;border-radius:50%;background:var(--sc)}
+@media (max-width:640px){ .day{min-height:50px;padding:3px} .chip,.more{display:none} .dots{display:flex} .cal-nav h2{min-width:0;font-size:1.05rem} }
+.addform{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+.addform .full{grid-column:1/-1}
+input[type=date],input[type=time]{width:100%;font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+
+/* Librus */
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.subtabs button{border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:8px;padding:6px 12px;font:600 .92rem "Atkinson Hyperlegible",sans-serif;cursor:pointer}
+.subtabs button[aria-selected="true"]{background:var(--card);border-color:var(--ink)}
+.subj-row{padding:10px 0;border-bottom:1px solid var(--line)}
+.subj-row:last-child{border-bottom:none}
+.subj-top{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.subj-top strong{font-family:"Bricolage Grotesque",sans-serif}
+.gs{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+.g{display:inline-flex;min-width:32px;height:32px;padding:0 6px;align-items:center;justify-content:center;border-radius:7px;
+  font:700 .95rem "JetBrains Mono",monospace;background:var(--field);border:1px solid var(--line);cursor:pointer;color:var(--ink)}
+.g.hi{color:var(--ok)} .g.lo{color:var(--err)} .g.special{border-style:dashed}
+.g.new{border-color:var(--margin);box-shadow:0 0 0 2px var(--margin)}
+.gdetail{font-size:.86rem;background:var(--field);border-radius:8px;padding:8px 10px;margin-top:8px}
+.avg{font:600 .85rem "JetBrains Mono",monospace;color:var(--muted)}
+.lucky{font:800 2.8rem/1 "Bricolage Grotesque",sans-serif}
+.mrow{display:block;width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--line);padding:10px 0;font:inherit;color:inherit;cursor:pointer}
+.mrow:last-child{border-bottom:none}
+.mrow .t{font-weight:700} .mrow.unread .t::before{content:"● ";color:var(--margin)}
+.mrow .m{font-size:.84rem;color:var(--muted)}
+.mbody{white-space:pre-wrap;word-break:break-word;background:var(--field);border-radius:8px;padding:12px;margin:4px 0 10px;font-size:.95rem}
+.mini-files .row{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:.95rem}
+.mini-files .row:last-child{border-bottom:none}
+.mini-files a{color:var(--ink);font-weight:700;text-decoration:none;word-break:break-word}
+.mini-files a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <h1>SCI File Share<small>Pliki z lekcji, posegregowane według przedmiotów</small></h1>
-    <div class="stats" id="stats">Ładowanie…</div>
+    <h1>SCI File Share<small>Pliki, kalendarz, Moodle i Librus w jednym miejscu</small></h1>
+    <div class="userbox" id="userbox"></div>
   </header>
 
+  <nav class="views" id="views" aria-label="Sekcje strony">
+    <button class="vbtn" data-view="start">Start</button>
+    <button class="vbtn" data-view="kalendarz">Kalendarz <span class="badge" id="bCal" hidden></span></button>
+    <button class="vbtn" data-view="librus">Librus <span class="badge" id="bLib" hidden></span></button>
+    <button class="vbtn" data-view="pliki">Pliki</button>
+  </nav>
+
+  <section class="panel" id="auth" hidden>
+    <form class="login" id="loginForm" action="#" method="post" autocomplete="on">
+      <p class="login-lead"><strong>Zaloguj się kontem Moodle SCI</strong> – zobaczysz swój kalendarz z Moodle, swoje wpisy i Librusa, i możesz wrzucać pliki (podpisane Twoim imieniem z Moodle).</p>
+      <div class="login-grid">
+        <div>
+          <label for="mUser">Login Moodle</label>
+          <input type="text" id="mUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        </div>
+        <div>
+          <label for="mPass">Hasło Moodle</label>
+          <input type="password" id="mPass" name="password" autocomplete="current-password" required>
+        </div>
+        <div class="login-btn"><button class="btn" id="loginBtn" type="submit">Zaloguj się</button></div>
+      </div>
+      <div class="msg" id="loginMsg" role="status"></div>
+      <p class="hint">Hasło jest wysyłane tylko do <b>moodle.sci.edu.pl</b>, żeby sprawdzić, kim jesteś, i pobrać Twój link do kalendarza – ta strona hasła nie zapisuje. To nie jest oficjalna strona szkoły.</p>
+    </form>
+  </section>
+
+  <!-- ===== START ===== -->
+  <section id="v-start" hidden>
+    <div class="grid2">
+      <div class="panel">
+        <div class="panel-h"><h2>Najbliższe 7 dni</h2><button class="linkbtn" data-go="kalendarz">Cały kalendarz →</button></div>
+        <div id="startEvents"></div>
+      </div>
+      <div class="stack">
+        <div class="panel" id="startLibrus"></div>
+        <div class="panel mini-files">
+          <div class="panel-h"><h2>Nowe pliki</h2><button class="linkbtn" data-go="pliki">Wszystkie →</button></div>
+          <div id="startFiles"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== KALENDARZ ===== -->
+  <section id="v-kalendarz" hidden>
+    <div class="note warn" id="calConnect" hidden style="margin-bottom:16px"></div>
+    <div class="cal-layout">
+      <div class="panel">
+        <div class="panel-h">
+          <div class="cal-nav">
+            <button class="btn ghost small" id="calPrev" aria-label="Poprzedni miesiąc">‹</button>
+            <h2 id="calTitle"></h2>
+            <button class="btn ghost small" id="calNext" aria-label="Następny miesiąc">›</button>
+          </div>
+          <button class="btn ghost small" id="calToday">Dziś</button>
+        </div>
+        <div class="legend"><span class="src-moodle">Moodle</span><span class="src-librus">Librus (terminarz)</span><span class="src-own">Moje wpisy</span></div>
+        <div class="month" id="month"></div>
+        <div class="msg" id="calMsg" role="status"></div>
+      </div>
+      <div class="stack">
+        <div class="panel">
+          <h2 id="dayTitle"></h2>
+          <div id="dayEvents"></div>
+          <form class="addform" id="addForm">
+            <div class="full"><label for="evTitle">Dodaj swój wpis</label>
+              <input type="text" id="evTitle" maxlength="150" placeholder="np. Nauczyć się na kartkówkę z SQL"></div>
+            <div><label for="evDay">Dzień</label><input type="date" id="evDay" required></div>
+            <div><label for="evTime">Godzina (opcj.)</label><input type="time" id="evTime"></div>
+            <div class="full"><label for="evNote">Notatka (opcj.)</label><textarea id="evNote" maxlength="1000" style="min-height:56px"></textarea></div>
+            <div class="full up-actions"><button class="btn small" type="submit">Dodaj</button><span class="msg" id="addMsg" role="status"></span></div>
+          </form>
+        </div>
+        <div class="panel"><h2>Nadchodzące</h2><div id="upcoming"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LIBRUS ===== -->
+  <section id="v-librus" hidden>
+    <div class="panel" id="libLogin" hidden>
+      <h2>Połącz z Librusem</h2>
+      <form id="libForm" autocomplete="on">
+        <div class="login-grid">
+          <div><label for="lUser">Login Librus</label><input type="text" id="lUser" autocomplete="username" autocapitalize="none" spellcheck="false" required></div>
+          <div><label for="lPass">Hasło Librus</label><input type="password" id="lPass" autocomplete="current-password" required></div>
+          <div><button class="btn" id="libBtn" type="submit">Połącz</button></div>
+        </div>
+        <div class="msg" id="libMsg" role="status"></div>
+        <p class="hint">Hasło idzie tylko do <b>librus.pl</b>, żeby się zalogować – <b>nie jest nigdzie zapisywane</b>. Strona trzyma tylko zaszyfrowaną, tymczasową sesję w Twojej przeglądarce (ok. 8 h), potem trzeba połączyć się ponownie. Używamy nieoficjalnego dostępu do Librusa, więc czasem coś może przestać działać.</p>
+      </form>
+    </div>
+    <div class="panel" id="libMain" hidden>
+      <div class="panel-h">
+        <h2 id="libTitle">Librus</h2>
+        <div class="up-actions"><span class="small muted" id="libWhen"></span>
+          <button class="btn ghost small" id="libRefresh">Odśwież</button>
+          <button class="btn ghost small" id="libOut">Rozłącz</button></div>
+      </div>
+      <div class="subtabs" role="tablist" id="libTabs">
+        <button role="tab" data-lt="oceny">Oceny</button>
+        <button role="tab" data-lt="wiadomosci">Wiadomości</button>
+        <button role="tab" data-lt="ogloszenia">Ogłoszenia</button>
+      </div>
+      <div class="msg err" id="libErr"></div>
+      <div id="libBody"></div>
+    </div>
+  </section>
+
+  <!-- ===== PLIKI ===== -->
+  <section id="v-pliki" hidden>
+  <div class="stats" id="stats" style="margin-bottom:10px">Ładowanie…</div>
   <nav class="tabs" role="tablist" id="tabs"></nav>
   <main class="sheet" id="sheet">
     <div class="banner" id="banner" hidden></div>
@@ -138,26 +339,12 @@ pre.code{margin:0;max-height:300px;overflow:auto;background:var(--field);border-
     <details class="up" id="up">
       <summary>Wrzuć plik</summary>
 
-      <form class="login" id="loginForm" action="#" method="post" autocomplete="on">
-        <p class="login-lead"><strong>Zaloguj się kontem Moodle SCI</strong>, żeby wrzucać pliki. Przy pliku pokaże się Twoje imię i nazwisko z Moodle – nikt nie podszyje się pod kogoś innego.</p>
-        <div class="login-grid">
-          <div>
-            <label for="mUser">Login Moodle</label>
-            <input type="text" id="mUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
-          </div>
-          <div>
-            <label for="mPass">Hasło Moodle</label>
-            <input type="password" id="mPass" name="password" autocomplete="current-password" required>
-          </div>
-          <div class="login-btn"><button class="btn" id="loginBtn" type="submit">Zaloguj się</button></div>
-        </div>
-        <div class="msg" id="loginMsg" role="status"></div>
-        <p class="hint">Hasło jest wysyłane tylko do <b>moodle.sci.edu.pl</b>, żeby sprawdzić, kim jesteś – ta strona go nie zapisuje. Przeglądarka (np. Chrome / Google) może zaproponować zapamiętanie hasła – wtedy następnym razem wypełni je sama. To nie jest oficjalna strona szkoły.</p>
-      </form>
+      <div class="login" id="upLogin">
+        <p class="login-lead">Żeby wrzucać pliki, <button class="linkbtn" id="upLoginBtn" type="button">zaloguj się kontem Moodle SCI</button>. Przy pliku pokaże się Twoje imię i nazwisko z Moodle.</p>
+      </div>
 
       <div class="who" id="who" hidden>
         <span>Wrzucasz jako <strong id="whoName"></strong> <span class="hint" id="whoLogin"></span></span>
-        <button class="btn ghost small" id="logout" type="button">Wyloguj</button>
       </div>
 
       <div class="up-body" id="upBody" hidden>
@@ -201,6 +388,7 @@ pre.code{margin:0;max-height:300px;overflow:auto;background:var(--field);border-
     <div class="list" id="list" aria-live="polite"></div>
     <div class="empty" id="empty" hidden></div>
   </main>
+  </section>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
@@ -254,17 +442,33 @@ async function api(action, data={}){
   const r = await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({action, session:me?.session, ...data})});
   let j={}; try{ j=await r.json(); }catch{}
-  if(r.status===401 && action!=='login'){ setMe(null); }
-  if(!r.ok) throw new Error(j.error||('Błąd '+r.status));
+  if(r.status===401 && j.librus==='expired'){ setLibrus(null); }
+  else if(r.status===401 && action!=='login' && action!=='librus_login'){ setMe(null); }
+  if(!r.ok){ const e=new Error(j.error||('Błąd '+r.status)); e.status=r.status; throw e; }
   return j;
 }
+let authWanted=false;
 function setMe(v){
+  const was=me?.session;
   me=v; saveMe(v);
-  $('loginForm').hidden=!!v; $('who').hidden=!v; $('upBody').hidden=!v;
-  if(v){ $('whoName').textContent=v.name; $('whoLogin').textContent=(v.login && v.login!==v.name ? '(login: '+v.login+')' : '')+(isAdmin?' · administrator':''); }
-  else { myIds=new Set(); isAdmin=false; }
+  $('upLogin').hidden=!!v; $('who').hidden=!v; $('upBody').hidden=!v;
+  const ub=$('userbox'); ub.textContent='';
+  if(v){
+    $('whoName').textContent=v.name; $('whoLogin').textContent=(v.login && v.login!==v.name ? '(login: '+v.login+')' : '')+(isAdmin?' · administrator':'');
+    ub.append(el('span',{},'Zalogowano: ',el('strong',{},v.name)), el('button',{class:'btn ghost small',type:'button',onclick:logout},'Wyloguj'));
+    authWanted=false;
+  } else {
+    myIds=new Set(); isAdmin=false; cal.moodle=[]; cal.own=[]; cal.loaded=false;
+    ub.append(el('button',{class:'btn small',type:'button',onclick:()=>wantAuth()},'Zaloguj się'));
+  }
+  updateAuth();
   renderList();
+  if(v && v.session!==was) loadCalendar();
+  renderView();
 }
+function logout(){ setLibrus(null); setMe(null); }
+function wantAuth(){ authWanted=true; updateAuth(); $('auth').scrollIntoView({behavior:'smooth',block:'start'}); setTimeout(()=>$('mUser').focus(),250); }
+function updateAuth(){ $('auth').hidden = !!me || (view==='pliki' && !authWanted); }
 async function refreshMe(){
   if(!me) return;
   try{ const j=await api('me'); me.name=j.name; myIds=new Set(j.ids||[]); isAdmin=!!j.admin; setMe(me); }catch{}
@@ -399,12 +603,359 @@ async function upload(){
   }
 }
 
+/* =====================================================================
+   WIDOKI
+   ===================================================================== */
+const VIEWS=['start','kalendarz','librus','pliki'];
+let view='start';
+function go(v){ if(!VIEWS.includes(v)) v='start'; if(location.hash!=='#'+v) history.replaceState(null,'','#'+v); view=v; renderView(); }
+function renderView(){
+  for(const v of VIEWS) $('v-'+v).hidden = v!==view;
+  for(const b of document.querySelectorAll('.vbtn')) b.setAttribute('aria-current', b.dataset.view===view?'page':'false');
+  updateAuth();
+  if(view==='start') renderStart();
+  if(view==='kalendarz') renderCalendar();
+  if(view==='librus'){ renderLibrus(); if(lib.token && !lib.data && !lib.loading) loadLibrus(); }
+}
+
+/* ---------- daty ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const todayStr=()=>ymd(new Date());
+const parseDay=s=>{ const [y,m,d]=s.split('-').map(Number); return new Date(y,m-1,d); };
+const addDays=(s,n)=>{ const d=parseDay(s); d.setDate(d.getDate()+n); return ymd(d); };
+const DOW=['Pn','Wt','Śr','Cz','Pt','So','Nd'];
+function dayLabel(s){
+  const t=todayStr();
+  if(s===t) return 'Dziś';
+  if(s===addDays(t,1)) return 'Jutro';
+  if(s===addDays(t,-1)) return 'Wczoraj';
+  return parseDay(s).toLocaleDateString('pl-PL',{weekday:'long',day:'numeric',month:'long'});
+}
+
+/* =====================================================================
+   KALENDARZ: Moodle + Librus (terminarz) + własne wpisy
+   ===================================================================== */
+const cal={moodle:[],own:[],connected:true,error:null,loaded:false,loading:false,month:null,sel:todayStr()};
+async function loadCalendar(){
+  if(!me || cal.loading) return;
+  cal.loading=true; $('calMsg').textContent='Wczytywanie kalendarza…'; $('calMsg').className='msg';
+  try{
+    const j=await api('calendar');
+    cal.moodle=j.moodle||[]; cal.own=j.own||[]; cal.connected=!!j.moodleConnected; cal.error=j.moodleError; cal.loaded=true;
+    $('calMsg').textContent='';
+  }catch(e){ $('calMsg').className='msg err'; $('calMsg').textContent='Nie udało się wczytać kalendarza: '+e.message; }
+  cal.loading=false;
+  renderView();
+}
+function allEvents(){
+  const out=[];
+  for(const m of cal.moodle){
+    let day, time='';
+    if(m.allDay) day=m.start.slice(0,10);
+    else { const d=new Date(m.start); day=ymd(d); time=pad(d.getHours())+':'+pad(d.getMinutes()); }
+    out.push({src:'moodle',id:'m'+m.id,title:m.title,sub:m.course,desc:m.desc,day,time,
+      link:'https://moodle.sci.edu.pl/calendar/view.php?view=day&time='+Math.floor(parseDay(day).getTime()/1000)});
+  }
+  for(const h of (lib.data?.homeworks||[])){
+    if(!h.date) continue;
+    out.push({src:'librus',id:'l'+h.id,title:[h.category,h.subject].filter(Boolean).join(' – ')||'Wpis w terminarzu',
+      sub:h.teacher, desc:h.content, day:h.date.slice(0,10), time:(h.from||'').slice(0,5)});
+  }
+  for(const o of cal.own) out.push({src:'own',id:o.id,title:o.title,desc:o.note||'',day:o.day,time:(o.time||'').slice(0,5),done:o.done,own:o});
+  out.sort((a,b)=>(a.day+(a.time||'00:00')).localeCompare(b.day+(b.time||'00:00')));
+  return out;
+}
+const SRC_NAME={moodle:'Moodle',librus:'Librus',own:'Mój wpis'};
+function evRow(e,{showDay=false}={}){
+  const row=el('div',{class:'ev src-'+e.src+(e.done?' done':'')});
+  if(e.src==='own'){
+    row.append(el('input',{type:'checkbox','aria-label':'Zrobione',checked:e.done||false,onchange:ev=>toggleOwn(e.own,ev.target.checked)}));
+  } else row.append(el('span',{class:'dot'}));
+  const meta=[SRC_NAME[e.src], e.time && e.time!=='00:00' ? e.time : null, e.sub||null, showDay? dayLabel(e.day):null].filter(Boolean).join(' · ');
+  const body=el('div',{class:'body'}, el('div',{class:'t'},e.title), el('div',{class:'m'},meta));
+  if(e.desc) body.append(el('div',{class:'d'},e.desc.length>400? e.desc.slice(0,400)+'…' : e.desc));
+  if(e.link) body.append(el('a',{class:'small',href:e.link,target:'_blank',rel:'noopener'},'Otwórz w Moodle'));
+  row.append(body);
+  if(e.src==='own') row.append(el('button',{class:'x',title:'Usuń wpis','aria-label':'Usuń wpis',onclick:()=>delOwn(e.own)},'×'));
+  return row;
+}
+function evList(target, evs, emptyText, headers=true){
+  target.textContent='';
+  if(!evs.length){ target.append(el('p',{class:'muted small',style:'margin:0'},emptyText)); return; }
+  let last='';
+  for(const e of evs){
+    if(headers && e.day!==last){ target.append(el('div',{class:'evday'},dayLabel(e.day))); last=e.day; }
+    target.append(evRow(e));
+  }
+}
+function renderCalendar(){
+  if(!me){ $('month').textContent=''; $('dayEvents').textContent=''; $('upcoming').textContent=''; $('calConnect').hidden=true;
+    $('calTitle').textContent=''; $('dayTitle').textContent='Zaloguj się, żeby zobaczyć kalendarz'; $('addForm').hidden=true; return; }
+  $('addForm').hidden=false;
+  // połączenie z Moodle
+  const cc=$('calConnect'); cc.textContent='';
+  if(cal.loaded && (!cal.connected || cal.error)){
+    cc.hidden=false;
+    cc.append(el('strong',{},cal.error? cal.error : 'Kalendarz z Moodle nie jest jeszcze połączony.'), ' ',
+      el('span',{},'Najprościej: '), el('button',{class:'linkbtn',onclick:()=>{ logout(); wantAuth(); }},'wyloguj się i zaloguj ponownie'),
+      el('span',{},' – link pobierze się sam. Albo wklej go ręcznie (Moodle → Kalendarz → Eksportuj kalendarz → „Pobierz adres URL kalendarza”):'));
+    const inp=el('input',{type:'text',placeholder:'https://moodle.sci.edu.pl/calendar/export_execute.php?userid=…',style:'margin-top:8px'});
+    const msg=el('span',{class:'msg'});
+    cc.append(inp, el('div',{class:'up-actions',style:'margin-top:8px'}, el('button',{class:'btn small',onclick:async()=>{
+      msg.className='msg'; msg.textContent='Sprawdzanie…';
+      try{ const j=await api('set_ical',{url:inp.value.trim()}); msg.className='msg ok'; msg.textContent='Połączono ('+j.count+' wydarzeń).'; await loadCalendar(); }
+      catch(e){ msg.className='msg err'; msg.textContent=e.message; }
+    }},'Połącz'), msg));
+  } else cc.hidden=true;
+
+  const evs=allEvents();
+  const byDay=new Map(); for(const e of evs){ if(!byDay.has(e.day)) byDay.set(e.day,[]); byDay.get(e.day).push(e); }
+  if(!cal.month){ const t=new Date(); cal.month=new Date(t.getFullYear(),t.getMonth(),1); }
+  const m=cal.month;
+  $('calTitle').textContent=m.toLocaleDateString('pl-PL',{month:'long',year:'numeric'});
+  const grid=$('month'); grid.textContent='';
+  for(const d of DOW) grid.append(el('div',{class:'dow'},d));
+  const start=new Date(m); start.setDate(1-((m.getDay()+6)%7));
+  const t=todayStr();
+  for(let i=0;i<42;i++){
+    const d=new Date(start); d.setDate(start.getDate()+i);
+    if(i>=35 && d.getMonth()!==m.getMonth()) break;
+    const s=ymd(d), list=byDay.get(s)||[];
+    const cell=el('button',{class:'day'+(d.getMonth()!==m.getMonth()?' out':'')+(s===t?' today':''),'aria-pressed':String(s===cal.sel),
+      'aria-label':dayLabel(s)+(list.length? ', '+list.length+' wpisów':''), onclick:()=>{ cal.sel=s; $('evDay').value=s; renderCalendar(); }},
+      el('span',{class:'num'},String(d.getDate())));
+    list.slice(0,3).forEach(e=>cell.append(el('div',{class:'chip src-'+e.src+(e.done?' done':'')},(e.time&&e.time!=='00:00'?e.time+' ':'')+e.title)));
+    if(list.length>3) cell.append(el('div',{class:'more'},'+'+(list.length-3)+' więcej'));
+    if(list.length){ const dots=el('div',{class:'dots'}); list.slice(0,6).forEach(e=>dots.append(el('i',{class:'src-'+e.src}))); cell.append(dots); }
+    grid.append(cell);
+  }
+  $('dayTitle').textContent=dayLabel(cal.sel);
+  if(!$('evDay').value) $('evDay').value=cal.sel;
+  evList($('dayEvents'), byDay.get(cal.sel)||[], cal.loaded? 'Nic na ten dzień.' : 'Wczytywanie…', false);
+  const up=evs.filter(e=>e.day>=t && e.day<=addDays(t,21) && !e.done);
+  evList($('upcoming'), up, cal.loaded? 'Nic w najbliższych 3 tygodniach.' : 'Wczytywanie…');
+  const soon=evs.filter(e=>e.day>=t && e.day<=addDays(t,2) && !e.done).length;
+  $('bCal').hidden=!soon; $('bCal').textContent=soon;
+}
+async function addOwn(ev){
+  ev.preventDefault();
+  const msg=$('addMsg'); msg.className='msg';
+  const title=$('evTitle').value.trim(), day=$('evDay').value;
+  if(!title){ msg.className='msg err'; msg.textContent='Wpisz, co masz do zrobienia.'; return; }
+  try{
+    const j=await api('event_add',{title,day,time:$('evTime').value,note:$('evNote').value.trim()});
+    cal.own.push(j.event); $('evTitle').value=''; $('evTime').value=''; $('evNote').value='';
+    msg.className='msg ok'; msg.textContent='Dodano.'; cal.sel=day; setTimeout(()=>msg.textContent='',2000);
+    renderView();
+  }catch(e){ msg.className='msg err'; msg.textContent=e.message; }
+}
+async function toggleOwn(o,done){
+  o.done=done; renderView();
+  try{ await api('event_update',{id:o.id,done}); }catch(e){ o.done=!done; renderView(); alert('Nie udało się zapisać: '+e.message); }
+}
+async function delOwn(o){
+  if(!confirm('Usunąć wpis „'+o.title+'”?')) return;
+  try{ await api('event_delete',{id:o.id}); cal.own=cal.own.filter(x=>x.id!==o.id); renderView(); }
+  catch(e){ alert('Nie udało się usunąć: '+e.message); }
+}
+
+/* =====================================================================
+   LIBRUS
+   ===================================================================== */
+const lib={token:null,data:null,loading:false,tab:'oceny',when:null,open:null,openG:null,msgCache:{}};
+function loadLib(){ try{ return localStorage.getItem('sci-librus'); }catch{ return null; } }
+function setLibrus(tok){
+  lib.token=tok; if(!tok){ lib.data=null; lib.msgCache={}; }
+  try{ tok? localStorage.setItem('sci-librus',tok) : localStorage.removeItem('sci-librus'); }catch{}
+  if(view==='librus') renderLibrus();
+}
+function seenGet(){ try{ return JSON.parse(localStorage.getItem('sci-seen')||'null')||{g:[],m:[],init:false}; }catch{ return {g:[],m:[],init:false}; } }
+function seenSet(v){ try{ localStorage.setItem('sci-seen',JSON.stringify(v)); }catch{} }
+let seen=seenGet();
+async function loadLibrus(){
+  if(!lib.token || !me || lib.loading) return;
+  lib.loading=true; $('libErr').textContent=''; $('libWhen').textContent='Wczytywanie…';
+  try{
+    const j=await api('librus_data',{librus:lib.token});
+    if(j.librus) setLibrus(j.librus);
+    lib.data=j; lib.when=new Date();
+    if(!seen.init){ seen={g:j.grades.map(g=>g.id),m:j.messages.filter(m=>m.read).map(m=>m.id),init:true}; seenSet(seen); }
+    if(j.errors?.length) $('libErr').textContent='Nie udało się pobrać: '+j.errors.join(', ')+'.';
+  }catch(e){ $('libErr').textContent=e.message; }
+  lib.loading=false;
+  renderView(); updateBadges();
+}
+function newGrades(){ const s=new Set(seen.g); return (lib.data?.grades||[]).filter(g=>!s.has(g.id)); }
+function unreadMsgs(){ return (lib.data?.messages||[]).filter(m=>!m.read); }
+function updateBadges(){
+  const n=newGrades().length+unreadMsgs().length;
+  $('bLib').hidden=!n; $('bLib').textContent=n;
+}
+function gradeValue(g){
+  const m=String(g.grade).match(/^([1-6])([+-]?)$/); if(!m) return null;
+  return Number(m[1])+(m[2]==='+'?0.5:m[2]==='-'?-0.25:0);
+}
+function gradeClass(g){ const v=gradeValue(g); return v==null? '' : v>=4.5? 'hi' : v<2? 'lo' : ''; }
+function fmtD(s){ return s? new Date(s.replace(' ','T')).toLocaleDateString('pl-PL',{day:'numeric',month:'short'}) : ''; }
+function renderLibrus(){
+  if(!me){ $('libLogin').hidden=true; $('libMain').hidden=true; return; }
+  $('libLogin').hidden=!!lib.token; $('libMain').hidden=!lib.token;
+  if(!lib.token) return;
+  $('libWhen').textContent= lib.loading? 'Wczytywanie…' : lib.when? 'Odświeżono '+lib.when.toLocaleTimeString('pl-PL',{hour:'2-digit',minute:'2-digit'}) : '';
+  const d=lib.data;
+  $('libTitle').textContent= d?.me?.name ? 'Librus – '+d.me.name : 'Librus';
+  for(const b of $('libTabs').children){
+    b.setAttribute('aria-selected',String(b.dataset.lt===lib.tab));
+    const n= b.dataset.lt==='oceny'? newGrades().length : b.dataset.lt==='wiadomosci'? unreadMsgs().length : 0;
+    b.textContent={oceny:'Oceny',wiadomosci:'Wiadomości',ogloszenia:'Ogłoszenia'}[b.dataset.lt]+(n?' ('+n+')':'');
+  }
+  const body=$('libBody'); body.textContent='';
+  if(!d){ body.append(el('p',{class:'muted'},lib.loading?'Pobieranie danych z Librusa…':'Brak danych.')); return; }
+  if(lib.tab==='oceny') renderGrades(body,d);
+  else if(lib.tab==='wiadomosci') renderMsgs(body,d);
+  else renderNotices(body,d);
+}
+function renderGrades(body,d){
+  const fresh=new Set(newGrades().map(g=>g.id));
+  if(fresh.size) body.append(el('div',{class:'up-actions',style:'margin-bottom:8px'},
+    el('span',{class:'small'},'Nowe oceny są obramowane.'),
+    el('button',{class:'btn ghost small',onclick:()=>{ seen.g=d.grades.map(g=>g.id); seenSet(seen); renderLibrus(); updateBadges(); }},'Oznacz jako przejrzane')));
+  const by=new Map();
+  for(const g of d.grades){ if(!by.has(g.subject)) by.set(g.subject,[]); by.get(g.subject).push(g); }
+  if(!by.size){ body.append(el('p',{class:'muted'},'Brak ocen.')); return; }
+  for(const [subject,gs] of [...by].sort((a,b)=>a[0].localeCompare(b[0],'pl'))){
+    gs.sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+    let sw=0,sv=0;
+    for(const g of gs){ const v=gradeValue(g), w=Number(g.weight)||0; if(v!=null && !g.kind && g.counts!==false && w>0){ sv+=v*w; sw+=w; } }
+    const row=el('div',{class:'subj-row'});
+    const detail=el('div',{class:'gdetail',hidden:true});
+    const list=el('div',{class:'gs'});
+    for(const g of gs){
+      const tip=[g.category, g.weight!=null?'waga '+g.weight:null, fmtD(g.date), g.teacher, g.comment].filter(Boolean).join(' · ');
+      list.append(el('button',{class:'g '+gradeClass(g)+(g.kind?' special':'')+(fresh.has(g.id)?' new':''),title:tip,
+        onclick:()=>{ detail.hidden=false; detail.textContent=''; detail.append(el('strong',{},g.grade+' '),
+          (g.kind? {final:'Ocena końcowa','final-prop':'Propozycja końcowej',sem:'Ocena semestralna','sem-prop':'Propozycja semestralnej'}[g.kind]+' · ' : '')+tip); }},g.grade));
+    }
+    row.append(el('div',{class:'subj-top'},el('strong',{},subject), el('span',{class:'avg'}, sw? 'średnia ≈ '+(sv/sw).toFixed(2) : '')), list, detail);
+    body.append(row);
+  }
+  body.append(el('p',{class:'hint'},'Średnia jest liczona szacunkowo (waga z Librusa, „+” = +0,5, „−” = −0,25). Kliknij ocenę, żeby zobaczyć szczegóły.'));
+}
+function renderMsgs(body,d){
+  if(!d.messages.length){ body.append(el('p',{class:'muted'},d.errors?.includes('wiadomości')?'Nie udało się pobrać wiadomości.':'Brak wiadomości.')); return; }
+  const s=new Set(seen.m);
+  for(const m of d.messages){
+    const unread=!m.read && !s.has(m.id);
+    const wrap=el('div');
+    const btn=el('button',{class:'mrow'+(unread?' unread':''),onclick:()=>openMsg(m)},
+      el('div',{class:'t'},m.topic||'(bez tematu)'), el('div',{class:'m'},m.from+' · '+fmtD(m.date)),
+      m.preview && lib.open!==m.id? el('div',{class:'m'},m.preview) : null);
+    wrap.append(btn);
+    if(lib.open===m.id){
+      const c=lib.msgCache[m.id];
+      wrap.append(el('div',{class:'mbody'}, c? (c.error? c.error : c.content||'(pusta wiadomość)') : 'Wczytywanie…'));
+      if(c?.attachments?.length) wrap.append(el('p',{class:'hint'},'Załączniki (otwórz w Librusie): '+c.attachments.join(', ')));
+    }
+    body.append(wrap);
+  }
+  body.append(el('p',{class:'hint'},'Odpisywać trzeba na razie w Librusie: ', el('a',{href:'https://synergia.librus.pl/wiadomosci3',target:'_blank',rel:'noopener'},'otwórz wiadomości w Librusie')));
+}
+async function openMsg(m){
+  lib.open = lib.open===m.id? null : m.id;
+  if(!seen.m.includes(m.id)){ seen.m.push(m.id); seenSet(seen); }
+  m.read=true; renderLibrus(); updateBadges();
+  if(lib.open && !lib.msgCache[m.id]){
+    try{ const j=await api('librus_msg',{librus:lib.token,id:m.id}); lib.msgCache[m.id]=j.message; }
+    catch(e){ lib.msgCache[m.id]={error:'Nie udało się otworzyć: '+e.message}; }
+    renderLibrus();
+  }
+}
+function renderNotices(body,d){
+  if(!d.notices.length){ body.append(el('p',{class:'muted'},'Brak ogłoszeń.')); return; }
+  for(const n of d.notices){
+    const det=el('details',{style:'border-bottom:1px solid var(--line);padding:8px 0'},
+      el('summary',{style:'cursor:pointer'}, el('strong',{},n.title||'Ogłoszenie'), el('span',{class:'m muted small'},' · '+[n.author,fmtD(n.added)].filter(Boolean).join(' · '))),
+      el('div',{class:'mbody',style:'margin-top:8px'},n.content));
+    body.append(det);
+  }
+}
+
+/* =====================================================================
+   START
+   ===================================================================== */
+function renderStart(){
+  if(view!=='start') return;
+  const se=$('startEvents');
+  if(!me){ se.textContent=''; se.append(el('p',{class:'muted'},'Zaloguj się kontem Moodle (u góry), żeby zobaczyć swoje terminy.')); }
+  else{
+    const t=todayStr();
+    evList(se, allEvents().filter(e=>e.day>=t && e.day<=addDays(t,7) && !e.done), cal.loaded? 'Wolne! Nic w najbliższym tygodniu.' : 'Wczytywanie…');
+  }
+  const sl=$('startLibrus'); sl.textContent='';
+  sl.append(el('div',{class:'panel-h'},el('h2',{},'Librus'),el('button',{class:'linkbtn',onclick:()=>go('librus')},'Otwórz →')));
+  if(!me){ sl.append(el('p',{class:'muted small',style:'margin:0'},'Po zalogowaniu możesz połączyć Librusa: oceny, wiadomości, ogłoszenia i terminarz w jednym miejscu.')); }
+  else if(!lib.token){ sl.append(el('p',{class:'small',style:'margin:0'},'Librus nie jest połączony. ', el('button',{class:'linkbtn',onclick:()=>go('librus')},'Połącz'))); }
+  else if(!lib.data){ sl.append(el('p',{class:'muted small',style:'margin:0'}, lib.loading?'Wczytywanie…':'Brak danych.')); }
+  else{
+    const d=lib.data;
+    if(d.lucky) sl.append(el('div',{style:'display:flex;gap:12px;align-items:center;margin-bottom:10px'},
+      el('span',{class:'lucky'},String(d.lucky.number)), el('span',{class:'small muted'},'szczęśliwy numerek', el('br'), d.lucky.day? dayLabel(d.lucky.day) : '')));
+    const ng=newGrades();
+    const recent=(ng.length? ng : [...d.grades].sort((a,b)=>String(b.added).localeCompare(String(a.added))).slice(0,6));
+    sl.append(el('div',{class:'small',style:'font-weight:700;margin-bottom:4px'}, ng.length? 'Nowe oceny ('+ng.length+')' : 'Ostatnie oceny'));
+    const gl=el('div',{class:'gs',style:'margin-bottom:12px'});
+    recent.slice(0,10).forEach(g=>gl.append(el('span',{class:'g '+gradeClass(g)+(ng.includes(g)?' new':''),title:g.subject+' · '+g.category},g.grade)));
+    if(!recent.length) gl.append(el('span',{class:'muted small'},'Brak ocen.'));
+    sl.append(gl);
+    const um=unreadMsgs();
+    sl.append(el('div',{class:'small',style:'font-weight:700;margin-bottom:4px'}, um.length? 'Nieprzeczytane wiadomości ('+um.length+')' : 'Wiadomości'));
+    const ml=(um.length? um : d.messages).slice(0,3);
+    if(!ml.length) sl.append(el('p',{class:'muted small',style:'margin:0'},'Brak.'));
+    ml.forEach(m=>sl.append(el('button',{class:'mrow'+(m.read?'':' unread'),onclick:()=>{ lib.tab='wiadomosci'; go('librus'); openMsg(m); }},
+      el('div',{class:'t'},m.topic||'(bez tematu)'), el('div',{class:'m'},m.from+' · '+fmtD(m.date)))));
+  }
+  const sf=$('startFiles'); sf.textContent='';
+  if(!files.length) sf.append(el('p',{class:'muted small',style:'margin:0'},'Brak plików.'));
+  for(const f of files.slice(0,5)) sf.append(el('div',{class:'row'},
+    el('a',{href:publicUrl(f.file_path,f.file_name)},f.title||f.file_name),
+    el('span',{class:'muted small',style:'white-space:nowrap'},fmtDate(f.created_at))));
+}
+
+function initViews(){
+  for(const b of document.querySelectorAll('.vbtn')) b.addEventListener('click',()=>go(b.dataset.view));
+  for(const b of document.querySelectorAll('[data-go]')) b.addEventListener('click',()=>go(b.dataset.go));
+  window.addEventListener('hashchange',()=>go(location.hash.slice(1)));
+  $('calPrev').addEventListener('click',()=>{ cal.month=new Date(cal.month.getFullYear(),cal.month.getMonth()-1,1); renderCalendar(); });
+  $('calNext').addEventListener('click',()=>{ cal.month=new Date(cal.month.getFullYear(),cal.month.getMonth()+1,1); renderCalendar(); });
+  $('calToday').addEventListener('click',()=>{ const t=new Date(); cal.month=new Date(t.getFullYear(),t.getMonth(),1); cal.sel=todayStr(); $('evDay').value=cal.sel; renderCalendar(); });
+  $('addForm').addEventListener('submit',addOwn);
+  for(const b of $('libTabs').children) b.addEventListener('click',()=>{ lib.tab=b.dataset.lt; renderLibrus(); });
+  $('libRefresh').addEventListener('click',loadLibrus);
+  $('libOut').addEventListener('click',()=>{ if(confirm('Rozłączyć Librusa na tym urządzeniu?')){ setLibrus(null); renderView(); updateBadges(); } });
+  $('libForm').addEventListener('submit',async e=>{
+    e.preventDefault();
+    const u=$('lUser').value.trim(), p=$('lPass').value, m=$('libMsg'), b=$('libBtn');
+    if(!u||!p) return;
+    b.disabled=true; m.className='msg'; m.textContent='Łączenie z Librusem…';
+    try{
+      const j=await api('librus_login',{login:u,pass:p});
+      $('lPass').value=''; m.textContent='';
+      setLibrus(j.librus); renderView(); loadLibrus();
+    }catch(err){ m.className='msg err'; m.textContent=err.message; }
+    b.disabled=false;
+  });
+  // odświeżanie w tle: Librus co 10 min, kalendarz co 15 min (tylko gdy karta jest widoczna)
+  setInterval(()=>{ if(document.visibilityState==='visible' && lib.token && me) loadLibrus(); }, 10*60e3);
+  setInterval(()=>{ if(document.visibilityState==='visible' && me) loadCalendar(); }, 15*60e3);
+}
+
 /* ---------- start ---------- */
 const COLS='id,created_at,title,description,subject,author,file_name,file_path,file_size,file_type,image_path';
 async function load(){
   const {data,error}=await sb.from('files').select(COLS).order('created_at',{ascending:false}).limit(1000);
   if(error){ showBanner('Nie udało się wczytać listy plików: '+error.message); return; }
-  files=data||[]; renderAll();
+  files=data||[]; renderAll(); renderStart();
 }
 function showBanner(t){ const b=$('banner'); b.textContent=t; b.hidden=false; }
 
@@ -420,12 +971,13 @@ function initForm(){
     try{
       const j=await api('login',{username:u,password:p});
       $('mPass').value=''; m.textContent='';
+      isAdmin=!!j.admin;
       setMe({session:j.session,name:j.name,login:j.login});
       refreshMe();
     }catch(err){ m.className='msg err'; m.textContent=err.message; }
     b.disabled=false;
   });
-  $('logout').addEventListener('click',()=>setMe(null));
+  $('upLoginBtn').addEventListener('click',()=>wantAuth());
   const drop=$('drop'), inp=$('file');
   drop.addEventListener('click',()=>inp.click());
   drop.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click();} });
@@ -439,13 +991,16 @@ function initForm(){
   $('q').addEventListener('input',e=>{ query=e.target.value; renderList(); });
 }
 
-initForm(); renderAll();
+initForm(); initViews(); renderAll();
+view = VIEWS.includes(location.hash.slice(1)) ? location.hash.slice(1) : 'start';
 if(SUPABASE_URL.startsWith('WKLEJ')){
   showBanner('Strona nie jest jeszcze połączona z bazą. Wklej SUPABASE_URL i SUPABASE_ANON_KEY na górze skryptu w index.html.');
   $('stats').textContent='';
 } else {
   sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  lib.token=loadLib();
   setMe(loadMe()); refreshMe();
+  if(me && lib.token) loadLibrus();
   load();
   sb.channel('files').on('postgres_changes',{event:'*',schema:'public',table:'files'},()=>load()).subscribe();
 }
