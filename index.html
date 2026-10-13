@@ -29,6 +29,7 @@
 }
 html{scroll-padding-top:env(safe-area-inset-top,0px)}
 *,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
 body{
   margin:0; color:var(--ink); background-color:var(--paper);
   background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
@@ -89,6 +90,13 @@ details.up[open] summary::before{content:"– "}
 .msg.err{color:var(--err)} .msg.ok{color:var(--ok)}
 .up-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .thumbprev{max-height:90px;border-radius:8px;margin-top:8px;display:none}
+.login{padding:0 16px 16px}
+.login-lead{margin:0 0 12px}
+.login-grid{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;align-items:end}
+input[type=password]{width:100%;font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:8px;padding:9px 11px}
+.login input{background:var(--card)}
+.who{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:0 16px 14px;padding:10px 12px;border-radius:9px;background:var(--card);border:1px solid var(--line)}
+@media (max-width:640px){ .login-grid{grid-template-columns:1fr} }
 
 /* lista */
 .list{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
@@ -129,7 +137,30 @@ pre.code{margin:0;max-height:300px;overflow:auto;background:var(--field);border-
 
     <details class="up" id="up">
       <summary>Wrzuć plik</summary>
-      <div class="up-body">
+
+      <form class="login" id="loginForm" action="#" method="post" autocomplete="on">
+        <p class="login-lead"><strong>Zaloguj się kontem Moodle SCI</strong>, żeby wrzucać pliki. Przy pliku pokaże się Twoje imię i nazwisko z Moodle – nikt nie podszyje się pod kogoś innego.</p>
+        <div class="login-grid">
+          <div>
+            <label for="mUser">Login Moodle</label>
+            <input type="text" id="mUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+          </div>
+          <div>
+            <label for="mPass">Hasło Moodle</label>
+            <input type="password" id="mPass" name="password" autocomplete="current-password" required>
+          </div>
+          <div class="login-btn"><button class="btn" id="loginBtn" type="submit">Zaloguj się</button></div>
+        </div>
+        <div class="msg" id="loginMsg" role="status"></div>
+        <p class="hint">Hasło jest wysyłane tylko do <b>moodle.sci.edu.pl</b>, żeby sprawdzić, kim jesteś – ta strona go nie zapisuje. Przeglądarka (np. Chrome / Google) może zaproponować zapamiętanie hasła – wtedy następnym razem wypełni je sama. To nie jest oficjalna strona szkoły.</p>
+      </form>
+
+      <div class="who" id="who" hidden>
+        <span>Wrzucasz jako <strong id="whoName"></strong> <span class="hint" id="whoLogin"></span></span>
+        <button class="btn ghost small" id="logout" type="button">Wyloguj</button>
+      </div>
+
+      <div class="up-body" id="upBody" hidden>
         <div class="full">
           <div class="drop" id="drop" tabindex="0" role="button" aria-label="Wybierz plik">
             <strong>Przeciągnij plik tutaj</strong> albo kliknij, żeby wybrać
@@ -145,10 +176,6 @@ pre.code{margin:0;max-height:300px;overflow:auto;background:var(--field);border-
           <label for="subject">Przedmiot</label>
           <select id="subject"></select>
           <div class="hint" id="autohint"></div>
-        </div>
-        <div>
-          <label for="author">Twoje imię</label>
-          <input type="text" id="author" maxlength="60" placeholder="np. Gabriel">
         </div>
         <div class="full">
           <label for="desc">Opis</label>
@@ -216,9 +243,31 @@ function safeName(n){
   return n.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ł/g,'l').replace(/Ł/g,'L')
           .replace(/[^a-zA-Z0-9._-]+/g,'_').slice(-80) || 'plik';
 }
-function randomKey(){ const a=new Uint8Array(16); crypto.getRandomValues(a); return [...a].map(x=>x.toString(16).padStart(2,'0')).join(''); }
-const myKeys = (()=>{ try{ return JSON.parse(localStorage.getItem('sci-keys')||'{}'); }catch{ return {}; } })();
-function saveKeys(){ try{ localStorage.setItem('sci-keys', JSON.stringify(myKeys)); }catch{} }
+/* ---------- sesja Moodle ---------- */
+const API = SUPABASE_URL + '/functions/v1/sci-api';
+let me = null;               // {session, name, login}
+let myIds = new Set();       // id moich plików (mogę je usuwać)
+function loadMe(){ try{ return JSON.parse(localStorage.getItem('sci-me')||'null'); }catch{ return null; } }
+function saveMe(v){ try{ v? localStorage.setItem('sci-me',JSON.stringify(v)) : localStorage.removeItem('sci-me'); }catch{} }
+async function api(action, data={}){
+  const r = await fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action, session:me?.session, ...data})});
+  let j={}; try{ j=await r.json(); }catch{}
+  if(r.status===401 && action!=='login'){ setMe(null); }
+  if(!r.ok) throw new Error(j.error||('Błąd '+r.status));
+  return j;
+}
+function setMe(v){
+  me=v; saveMe(v);
+  $('loginForm').hidden=!!v; $('who').hidden=!v; $('upBody').hidden=!v;
+  if(v){ $('whoName').textContent=v.name; $('whoLogin').textContent=v.login && v.login!==v.name ? '(login: '+v.login+')' : ''; }
+  else myIds=new Set();
+  renderList();
+}
+async function refreshMe(){
+  if(!me) return;
+  try{ const j=await api('me'); me.name=j.name; myIds=new Set(j.ids||[]); setMe(me); }catch{}
+}
 
 let sb=null, files=[], current='all', query='';
 const publicUrl = (path, download) => sb.storage.from(BUCKET).getPublicUrl(path, download? {download} : undefined).data.publicUrl;
@@ -266,7 +315,7 @@ function card(f){
   acts.append(el('a',{class:'btn small',href:publicUrl(f.file_path,f.file_name),style:'text-decoration:none'},'Pobierz'));
   if(TEXT_EXT.includes(e)) acts.append(el('button',{class:'btn ghost small',onclick:ev=>togglePreview(f,pre,ev.currentTarget)},'Podgląd kodu'));
   if(e==='pdf' || e==='mp4' || e==='webm') acts.append(el('a',{class:'btn ghost small',href:publicUrl(f.file_path),target:'_blank',rel:'noopener',style:'text-decoration:none'},'Otwórz'));
-  if(myKeys[f.id]) acts.append(el('button',{class:'btn danger small',onclick:()=>remove(f)},'Usuń'));
+  if(myIds.has(f.id)) acts.append(el('button',{class:'btn danger small',onclick:()=>remove(f)},'Usuń'));
 
   return el('article',{class:'item',style:'--ic:'+s.color},
     pic,
@@ -293,9 +342,8 @@ async function togglePreview(f,pre,btn){
 }
 async function remove(f){
   if(!confirm('Usunąć „'+(f.title||f.file_name)+'”? Tego nie da się cofnąć.')) return;
-  const {data,error}=await sb.rpc('delete_file',{p_id:f.id,p_key:myKeys[f.id]});
-  if(error||!data){ alert('Nie udało się usunąć pliku.'); return; }
-  delete myKeys[f.id]; saveKeys();
+  try{ await api('delete',{id:f.id}); }catch(e){ alert('Nie udało się usunąć pliku: '+e.message); return; }
+  myIds.delete(f.id);
   await load();
 }
 
@@ -313,37 +361,32 @@ function pickFile(file){
 }
 function setMsg(t,cls=''){ const m=$('upmsg'); m.textContent=t; m.className='msg '+cls; }
 
-async function uploadOne(file, folder){
-  const path=folder+'/'+Date.now()+'-'+randomKey().slice(0,8)+'-'+safeName(file.name);
-  const {error}=await sb.storage.from(BUCKET).upload(path,file,{contentType:file.type||'application/octet-stream',upsert:false});
+async function putSigned(slot, file){
+  const {error}=await sb.storage.from(BUCKET).uploadToSignedUrl(slot.path, slot.token, file,
+    {contentType:file.type||'application/octet-stream'});
   if(error) throw error;
-  return path;
 }
 async function upload(){
   if(!picked||!sb) return;
+  if(!me){ setMsg('Najpierw zaloguj się przez Moodle.','err'); return; }
   if(picked.size>MAX_SIZE){ setMsg('Plik jest za duży – limit to 50 MB.','err'); return; }
   const btn=$('send'); btn.disabled=true;
   const subject=$('subject').value;
-  const author=$('author').value.trim().slice(0,60);
-  try{ localStorage.setItem('sci-author',author); }catch{}
+  const img=$('img').files[0];
+  const title=($('title').value.trim()||picked.name).slice(0,120);
   try{
+    setMsg('Przygotowanie…');
+    const slot=await api('start',{
+      title, description:$('desc').value.trim().slice(0,2000), subject,
+      file_name:picked.name, file_size:picked.size, file_type:picked.type||'',
+      image_name: img? img.name : ''
+    });
     setMsg('Wysyłanie pliku…');
-    const file_path=await uploadOne(picked, subject);
-    let image_path=null;
-    const img=$('img').files[0];
-    if(img){ setMsg('Wysyłanie zdjęcia…'); image_path=await uploadOne(img, 'zdjecia'); }
-    const key=randomKey();
-    const row={
-      title:($('title').value.trim()||picked.name).slice(0,120),
-      description:$('desc').value.trim().slice(0,2000)||null,
-      subject, author:author||null,
-      file_name:picked.name, file_path, file_size:picked.size, file_type:picked.type||null,
-      image_path, delete_key:key
-    };
-    const {data,error}=await sb.from('files').insert(row).select('id').single();
-    if(error) throw error;
-    myKeys[data.id]=key; saveKeys();
-    setMsg('Wrzucono „'+row.title+'”.','ok');
+    await putSigned(slot.file, picked);
+    if(img && slot.image){ setMsg('Wysyłanie zdjęcia…'); await putSigned(slot.image, img); }
+    await api('finish',{id:slot.id});
+    myIds.add(slot.id);
+    setMsg('Wrzucono „'+title+'”.','ok');
     picked=null; $('file').value=''; $('img').value=''; $('imgprev').style.display='none';
     $('title').value=''; $('desc').value=''; $('autohint').textContent='';
     $('fileinfo').textContent='Dowolny plik do 50 MB – kod, PDF, obrazy, .docx, .zip…';
@@ -367,7 +410,21 @@ function showBanner(t){ const b=$('banner'); b.textContent=t; b.hidden=false; }
 function initForm(){
   const sel=$('subject');
   for(const s of SUBJECTS) sel.append(el('option',{value:s.id},s.name));
-  try{ $('author').value=localStorage.getItem('sci-author')||''; }catch{}
+  $('loginForm').addEventListener('submit', async e=>{
+    e.preventDefault();
+    const u=$('mUser').value.trim(), p=$('mPass').value;
+    if(!u||!p) return;
+    const b=$('loginBtn'), m=$('loginMsg');
+    b.disabled=true; m.className='msg'; m.textContent='Sprawdzanie w Moodle…';
+    try{
+      const j=await api('login',{username:u,password:p});
+      $('mPass').value=''; m.textContent='';
+      setMe({session:j.session,name:j.name,login:j.login});
+      refreshMe();
+    }catch(err){ m.className='msg err'; m.textContent=err.message; }
+    b.disabled=false;
+  });
+  $('logout').addEventListener('click',()=>setMe(null));
   const drop=$('drop'), inp=$('file');
   drop.addEventListener('click',()=>inp.click());
   drop.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click();} });
@@ -387,6 +444,7 @@ if(SUPABASE_URL.startsWith('WKLEJ')){
   $('stats').textContent='';
 } else {
   sb=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+  setMe(loadMe()); refreshMe();
   load();
   sb.channel('files').on('postgres_changes',{event:'*',schema:'public',table:'files'},()=>load()).subscribe();
 }
